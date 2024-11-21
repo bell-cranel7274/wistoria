@@ -49,7 +49,6 @@ npm run build
 
 The built files will be available in the `dist` directory.
 
-## Contributing
 
 Contributions are welcome! If you have suggestions for improvements or new features, feel free to open an issue or submit a pull request.
 
@@ -68,9 +67,6 @@ Contributions are welcome! If you have suggestions for improvements or new featu
    ```
 5. Open a pull request.
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 Steps to Push Changes
 1. Stage Your Changes:
 First, make sure all your changes are staged. You can stage all changes with the following command:
@@ -91,6 +87,3 @@ If there are changes in the remote repository that you haven't pulled yet, you m
 Finally, push your committed changes to the remote repository:
 
    git push origin main
-
-Summary
-By following these steps, you should be able to successfully push your changes to the main branch of your remote repository. If you encounter any errors during this process, feel free to ask for further assistance!
