@@ -1,4 +1,6 @@
 # EDEN Task Manager
+first of all if anyone check on this im an idiot so dont mind me and i have Dyslexia
+
 
 EDEN Task Manager is a web application built with React and Vite that helps users manage their tasks efficiently. It features a clean and intuitive interface, allowing users to create, edit, and delete tasks, as well as organize them using a Kanban board.
 
@@ -69,3 +71,26 @@ Contributions are welcome! If you have suggestions for improvements or new featu
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Steps to Push Changes
+1. Stage Your Changes:
+First, make sure all your changes are staged. You can stage all changes with the following command:
+ 
+    git add .
+
+2. Commit Your Changes:
+After staging, commit your changes with a descriptive message:
+
+    git commit -m "Your descriptive commit message here"
+
+3. Pull Any Remote Changes (if necessary):
+If there are changes in the remote repository that you haven't pulled yet, you may need to pull those changes first. This is especially important if you previously encountered issues with unrelated histories. Use:
+
+   git pull origin main --allow-unrelated-histories
+
+4. Push Your Changes:
+Finally, push your committed changes to the remote repository:
+
+   git push origin main
+
+Summary
+By following these steps, you should be able to successfully push your changes to the main branch of your remote repository. If you encounter any errors during this process, feel free to ask for further assistance!
