@@ -1,9 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../ui/card';
 import { Clock, AlertCircle } from 'lucide-react';
 import { TaskStatus, TaskPriority } from '../../types/task';
+import { STORAGE_KEYS, handleStorageError } from '../../constants/storage';
 
 export const TaskList = ({ tasks, onTaskSelect, viewMode }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        setIsLoading(true);
+        // Your existing task loading logic
+      } catch (err) {
+        setError('Failed to load tasks');
+        handleStorageError(err, 'read', STORAGE_KEYS.TASKS);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, []);
+
+  if (error) {
+    return (
+      <div className="p-4 text-destructive bg-destructive/10 rounded-md">
+        {error}
+      </div>
+    );
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case TaskStatus.COMPLETED:

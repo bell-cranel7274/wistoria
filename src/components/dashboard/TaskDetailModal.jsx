@@ -2,14 +2,28 @@ import React, { useState } from 'react';
 import { X, Trash2 } from 'lucide-react';
 import { CATEGORIES } from '../../utils/constants';
 import { TaskStatus, TaskPriority } from '../../types/task';
+import { STORAGE_KEYS, handleStorageError } from '../../constants/storage';
 
 export const TaskDetailModal = ({ task, onClose, onUpdate, onDelete }) => {
   const [editedTask, setEditedTask] = useState(task);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onUpdate(editedTask);
+    setIsSaving(true);
+    setError(null);
+    
+    try {
+      await onUpdate(editedTask);
+      onClose();
+    } catch (err) {
+      setError('Failed to save task. Please try again.');
+      handleStorageError(err, 'update', STORAGE_KEYS.TASKS);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (

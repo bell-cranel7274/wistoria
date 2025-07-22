@@ -10,8 +10,9 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
-    open: true, // Opens browser automatically
+    port: 4300,
+    strictPort: true,
+    host: '0.0.0.0',
   },
   build: {
     outDir: 'dist',

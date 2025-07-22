@@ -81,7 +81,7 @@ export const NoteDetailModal = ({ note, onClose }) => {
           </div>
         </div>
       ) : (
-        <div className="bg-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col">
+        <div className="bg-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col font-['Monorama']">
           <div className="p-6 border-b border-border">
             <div className="flex justify-between items-start">
               <div className="space-y-2">
@@ -90,13 +90,13 @@ export const NoteDetailModal = ({ note, onClose }) => {
                     type="text"
                     value={editedNote.title}
                     onChange={(e) => setEditedNote({ ...editedNote, title: e.target.value })}
-                    className="text-xl font-bold bg-transparent border-b border-border focus:outline-none focus:border-primary w-full"
+                    className="text-xl font-bold bg-transparent border-b border-border focus:outline-none focus:border-primary w-full font-['Monorama']"
                   />
                 ) : (
-                  <h2 className="text-xl font-bold">{note.title}</h2>
+                  <h2 className="text-xl font-bold font-['Monorama']">{note.title}</h2>
                 )}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="text-primary font-mono">{note.referenceNumber}</span>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground font-['Monorama']">
+                  <span className="text-primary font-['Monorama']">{note.referenceNumber}</span>
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4" />
                     <span>Created: {formatDate(note.createdAt)}</span>
@@ -150,11 +150,11 @@ export const NoteDetailModal = ({ note, onClose }) => {
               <textarea
                 value={editedNote.content}
                 onChange={(e) => setEditedNote({ ...editedNote, content: e.target.value })}
-                className="w-full h-full p-4 bg-transparent resize-none focus:outline-none font-monorama"
+                className="w-full h-full p-4 bg-transparent resize-none focus:outline-none font-['Monorama']"
                 placeholder="Note content..."
               />
             ) : (
-              <div className="w-full h-full p-4 whitespace-pre-wrap font-monorama">
+              <div className="w-full h-full p-4 whitespace-pre-wrap font-['Monorama']">
                 {note.content}
               </div>
             )}

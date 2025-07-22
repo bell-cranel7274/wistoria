@@ -17,6 +17,7 @@ import { useTaskContext } from '../../../context/TaskContext';
 import { TaskStatus, TaskPriority } from '../../../types/task';
 import { CATEGORIES } from '../../../utils/constants';
 import { GripHorizontal, Info, TrendingUp, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChatWidget } from '../../chat/ChatWidget';
 
 // Register ChartJS components
 ChartJS.register(
@@ -491,6 +492,15 @@ export const ChartView = () => {
 
   return (
     <div className="p-4 bg-background min-h-screen">
+      {/* Header with Chat Widget */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">Task Analytics</h1>
+          <p className="text-muted-foreground">Visualize your task data and productivity metrics</p>
+        </div>
+        <ChatWidget />
+      </div>
+      
       <div className="flex gap-6">
         <div className="flex-1">
           <DragDropContext onDragEnd={handleDragEnd}>

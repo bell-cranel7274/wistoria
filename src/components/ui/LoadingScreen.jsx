@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 
 const StyledWrapper = styled.div`
+  font-family: 'Monorama', monospace;
+
   .matrix-loader {
     display: inline-flex;
-    border: 2px solid hsl(var(--foreground));
-    --c: no-repeat linear-gradient(hsl(var(--foreground)) 0 0) 50%;
+    border: 2px solid #ffffff;
+    --c: no-repeat linear-gradient(#ffffff 0 0) 50%;
     background: var(--c) calc(50% - 5px)/5px 5px,
       var(--c) calc(50% + 5px)/5px 5px;
   }
@@ -14,13 +16,13 @@ const StyledWrapper = styled.div`
   .matrix-loader::after {
     content: "12 00 23 40 31 45 60 17 45 32 29 42 50 08 14 07 46 11 03 55";
     font-size: 30px;
-    font-family: monospace;
+    font-family: 'Monorama', monospace;
     font-weight: bold;
     line-height: 1em;
     height: 1em;
     width: 2ch;
     color: transparent;
-    text-shadow: 0 0 0 hsl(var(--foreground));
+    text-shadow: 0 0 0 #ffffff;
     overflow: hidden;
     margin: 5px 10px;
     animation: matrix 1s steps(20) infinite;
@@ -32,7 +34,7 @@ const StyledWrapper = styled.div`
 
   @keyframes matrix {
     100% {
-      text-shadow: 0 -20em 0 hsl(var(--foreground))
+      text-shadow: 0 -20em 0 #ffffff
     }
   }
 
@@ -182,7 +184,7 @@ export const LoadingScreen = () => {
   }, []);
 
   return (
-    <StyledWrapper className="fixed inset-0 bg-background flex items-center justify-center z-50">
+    <StyledWrapper className="fixed inset-0 bg-[#1e293b] flex items-center justify-center z-50">
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 space-y-8 text-center">
         <div className="space-y-4">
           <div className="logo w-24 h-24 mx-auto mb-8">
@@ -193,14 +195,14 @@ export const LoadingScreen = () => {
             />
           </div>
           
-          <h2 className="text-2xl font-bold text-foreground">
+          <h2 className="text-2xl font-bold text-[#f1f5f9] font-['Monorama']">
             {getGreeting()}
           </h2>
           
           <div className="matrix-loader" />
           
           <div className="h-6 min-w-[300px]">
-            <p className="text-sm text-muted-foreground animate-message-fade">
+            <p className="text-sm text-[#cbd5e1] animate-message-fade font-['Monorama']">
               {loadingMessage}
             </p>
           </div>

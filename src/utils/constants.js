@@ -1,11 +1,23 @@
 export const CATEGORIES = [
-  'General',
   'Work',
   'Personal',
   'Shopping',
   'Health',
+  'Research',
   'Education',
-  'Finance'
+  'Finance',
+  'Other'
+];
+
+export const RESEARCH_CATEGORIES = [
+  'Literature Review',
+  'Field Research',
+  'Data Analysis',
+  'Methodology',
+  'Findings',
+  'Conclusions',
+  'References',
+  'Other'
 ];
 
 export const PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'];
@@ -40,4 +52,13 @@ export const PROGRESS_COLORS = {
   LOW: '#D72638',     // Deep Red for low progress
   MEDIUM: '#FCD307',  // Bright Yellow for medium progress
   HIGH: '#64FFDA'     // Neon Green for high progress
-}; 
+};
+
+export const VIDEO_CATEGORIES = [
+  'Tutorial',
+  'Meeting',
+  'Presentation',
+  'Code Review',
+  'Demo',
+  'Other'
+];

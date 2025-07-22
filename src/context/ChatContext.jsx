@@ -1,0 +1,346 @@
+
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+
+const ChatContext = createContext();
+
+const OLLAMA_BASE_URL = 'http://localhost:5000';
+
+export const ChatProvider = ({ children }) => {
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('chat-messages');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [chatId, setChatId] = useState(() => uuidv4());
+  const [availableModels, setAvailableModels] = useState([]);
+  const [selectedModel, setSelectedModel] = useState('gemma3:latest');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
+  // Save messages to localStorage
+  useEffect(() => {
+    localStorage.setItem('chat-messages', JSON.stringify(messages));
+  }, [messages]);
+
+  // Check server health and fetch models on mount
+  useEffect(() => {
+    checkHealth();
+    fetchModels();
+  }, []);
+
+  const checkHealth = async () => {
+    try {
+      const response = await fetch(`${OLLAMA_BASE_URL}/api/health`);
+      if (response.ok) {
+        setIsConnected(true);
+      } else {
+        setIsConnected(false);
+      }
+    } catch (error) {
+      console.error('Health check failed:', error);
+      setIsConnected(false);
+    }
+  };
+
+  const fetchModels = async () => {
+    try {
+      const response = await fetch(`${OLLAMA_BASE_URL}/api/models`);
+      if (response.ok) {
+        const data = await response.json();
+        const models = data.models || [];
+        setAvailableModels(models);
+        setIsConnected(true);
+        // Auto-select first available model if current selection isn't available
+        if (models.length > 0) {
+          const modelNames = models.map(m => m.name);
+          if (!modelNames.includes(selectedModel)) {
+            setSelectedModel(modelNames[0]);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch models:', error);
+      setIsConnected(false);
+    }
+  };
+
+  const sendMessage = async (messageText) => {
+    if (!messageText.trim()) return;
+
+    const userMessage = {
+      id: Date.now(),
+      text: messageText,
+      sender: 'user',
+      timestamp: new Date().toISOString()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    const aiMessage = {
+      id: Date.now() + 1,
+      text: '',
+      sender: 'ai',
+      timestamp: new Date().toISOString(),
+      model: selectedModel
+    };
+
+    setMessages(prev => [...prev, aiMessage]);
+
+    try {
+      const response = await fetch(`${OLLAMA_BASE_URL}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageText,
+          model: selectedModel,
+          chatId
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        fullResponse += chunk;
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === aiMessage.id
+              ? { ...msg, text: fullResponse }
+              : msg
+          )
+        );
+      }
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === aiMessage.id
+            ? { ...msg, text: `Error: Failed to get response. ${!isConnected ? 'Please check if the Ollama server is running.' : ''}` }
+            : msg
+        )
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const clearMessages = () => {
+    setMessages([]);
+    setChatId(uuidv4());
+    localStorage.removeItem('chat-messages');
+  };
+
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+  };
+
+
+  // Voice input (speech-to-text) function
+  const startVoiceInput = (onResult, onError) => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      if (onError) onError('Speech recognition not supported in this browser.');
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      if (onResult) onResult(transcript);
+    };
+    recognition.onerror = (event) => {
+      if (onError) onError(event.error);
+    };
+    recognition.start();
+  };
+
+  // Voice wake word and auto-send logic
+  let wakeRecognition = null;
+  let messageRecognition = null;
+  let silenceTimeout = null;
+  let isWakeActive = false; // Track if wake mode should be active
+
+  const enableVoiceWake = (onMessage, onError, onStartListening) => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      if (onError) onError('Speech recognition not supported in this browser.');
+      return;
+    }
+
+    // Set wake mode as active
+    isWakeActive = true;
+
+    // Helper to start listening for the hotword
+    const startWakeRecognition = () => {
+      // Clean up any existing recognition
+      if (wakeRecognition) {
+        wakeRecognition.abort();
+        wakeRecognition = null;
+      }
+      
+      wakeRecognition = new SpeechRecognition();
+      wakeRecognition.lang = 'en-US';
+      wakeRecognition.continuous = true;
+      wakeRecognition.interimResults = true;
+
+      wakeRecognition.onresult = (event) => {
+        const hotwordPatterns = [
+          /hey\s*eden/,
+          /hello\s*eden/,
+          /hi\s*eden/,
+        ];
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const transcript = event.results[i][0].transcript.trim().toLowerCase();
+          if (hotwordPatterns.some((pattern) => pattern.test(transcript))) {
+            wakeRecognition.abort();
+            startMessageRecognition();
+            break;
+          }
+        }
+      };
+      wakeRecognition.onerror = (event) => {
+        console.log('Wake recognition error:', event.error);
+        // Only restart if it's not an intentional abort and wake mode is still active
+        if (event.error !== 'aborted' && isWakeActive) {
+          if (onError) onError(event.error);
+          setTimeout(() => {
+            if (isWakeActive) startWakeRecognition();
+          }, 1000);
+        }
+      };
+      wakeRecognition.onend = () => {
+        console.log('Wake recognition ended, isWakeActive:', isWakeActive);
+        // Only restart if wake mode is still active and not intentionally stopped
+        if (isWakeActive) {
+          setTimeout(() => {
+            if (isWakeActive) startWakeRecognition();
+          }, 1000);
+        }
+      };
+      wakeRecognition.start();
+    };
+
+    // Helper to listen for the user's message
+    const startMessageRecognition = () => {
+      if (onStartListening) onStartListening(); // Notify that we're now listening for the message
+      
+      // Clean up any existing recognition
+      if (messageRecognition) {
+        messageRecognition.abort();
+        messageRecognition = null;
+      }
+      
+      messageRecognition = new SpeechRecognition();
+      messageRecognition.lang = 'en-US';
+      messageRecognition.interimResults = false;
+      messageRecognition.maxAlternatives = 1;
+
+      let finalTranscript = '';
+
+      messageRecognition.onresult = (event) => {
+        finalTranscript = event.results[0][0].transcript;
+        // Start silence timer
+        if (silenceTimeout) clearTimeout(silenceTimeout);
+        silenceTimeout = setTimeout(() => {
+          if (onMessage && finalTranscript.trim()) onMessage(finalTranscript.trim());
+          // After sending, go back to wake mode only if still active
+          if (isWakeActive) {
+            startWakeRecognition();
+          }
+        }, 3000);
+      };
+      messageRecognition.onend = () => {
+        // If user stopped speaking, wait for silence timeout only if still active
+        if (!silenceTimeout && isWakeActive) {
+          silenceTimeout = setTimeout(() => {
+            if (onMessage && finalTranscript.trim()) onMessage(finalTranscript.trim());
+            if (isWakeActive) {
+              startWakeRecognition();
+            }
+          }, 3000);
+        }
+      };
+      messageRecognition.onerror = (event) => {
+        console.log('Message recognition error:', event.error);
+        // Only report non-abort errors
+        if (event.error !== 'aborted' && onError) {
+          onError(event.error);
+        }
+        // Only restart wake recognition if we're still supposed to be listening
+        if (isWakeActive) {
+          startWakeRecognition();
+        }
+      };
+      messageRecognition.start();
+    };
+
+    // Start the wake word recognition
+    startWakeRecognition();
+    
+    // Return a function to stop all recognition
+    return () => {
+      console.log('Cleaning up voice recognition...');
+      isWakeActive = false; // Disable wake mode
+      
+      if (wakeRecognition) {
+        wakeRecognition.abort();
+        wakeRecognition = null;
+      }
+      if (messageRecognition) {
+        messageRecognition.abort();
+        messageRecognition = null;
+      }
+      if (silenceTimeout) {
+        clearTimeout(silenceTimeout);
+        silenceTimeout = null;
+      }
+    };
+  };
+
+  return (
+    <ChatContext.Provider value={{
+      messages,
+      availableModels,
+      selectedModel,
+      setSelectedModel,
+      isLoading,
+      isConnected,
+      isChatOpen,
+      sendMessage,
+      clearMessages,
+      toggleChat,
+      checkHealth,
+      fetchModels,
+      chatId,
+      setChatId,
+      startVoiceInput,
+      enableVoiceWake
+    }}>
+      {children}
+    </ChatContext.Provider>
+  );
+};
+
+export const useChatContext = () => {
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error('useChatContext must be used within a ChatProvider');
+  }
+  return context;
+};

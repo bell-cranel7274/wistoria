@@ -1,0 +1,39 @@
+# Versioning and metadata
+.git
+.gitignore
+.dockerignore
+.env
+
+# Dependencies
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build files
+dist
+
+# Python-related files
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info
+startup.bat
+startup.vbs
+system_tray.pyw
+*.lnk
+debug_icon.png
+startup_log.txt
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo

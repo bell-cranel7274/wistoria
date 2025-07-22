@@ -46,15 +46,36 @@
     --input: 0 0% 30%;
     --ring: 12 100% 60%;
   }
+
+  select {
+    @apply bg-background text-foreground border-border;
+  }
+  
+  select option {
+    @apply bg-background text-foreground;
+  }
+
+  /* Dark mode specific styles */
+  [data-theme="dark"] select {
+    @apply bg-background text-foreground border-border;
+  }
+
+  [data-theme="dark"] select option {
+    @apply bg-card text-foreground;
+  }
 }
 
 @layer base {
   * {
     @apply border-border;
+    font-family: 'Monorama', 'Courier New', Courier, monospace !important;
   }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Monorama', monospace;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -65,4 +86,12 @@
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
-} 
+}
+
+@font-face {
+  font-family: 'Monorama';
+  src: url('/fonts/Monorama-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}

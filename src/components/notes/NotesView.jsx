@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTaskContext } from '../../context/TaskContext';
 import { Card } from '../ui/card';
-import { Clock, Plus, X, Search, Edit, Trash2 } from 'lucide-react';
+import { Clock, Plus, X, Search, Edit, Trash2, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export const NotesView = () => {
   const { notes, addNote, updateNote, deleteNote } = useTaskContext();
@@ -9,6 +10,7 @@ export const NotesView = () => {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
   // Function to generate a reference number
   function generateReferenceNumber() {
@@ -112,38 +114,38 @@ export const NotesView = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50">
-        <div className="fixed inset-x-4 top-[50%] translate-y-[-50%] max-w-4xl mx-auto bg-card rounded-lg shadow-lg">
+        <div className="fixed inset-x-4 top-[50%] translate-y-[-50%] max-w-4xl mx-auto bg-card rounded-lg shadow-lg font-['Monorama']">
           <div className="p-6">
             <div className="mb-6">
               <input
                 type="text"
                 value={localData.title}
                 onChange={(e) => handleInputChange(e, 'title')}
-                className="text-2xl font-bold mb-2 w-full bg-transparent border-b border-border focus:outline-none focus:border-primary"
+                className="text-2xl font-bold mb-2 w-full bg-transparent border-b border-border focus:outline-none focus:border-primary font-['Monorama']"
                 placeholder="NOTE TITLE"
                 readOnly={!isEditing && !isAddingNote}
               />
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div>
-                  <label className="text-sm text-muted-foreground">PROJECT NAME</label>
+                  <label className="text-sm text-muted-foreground font-['Monorama']">PROJECT NAME</label>
                   <input
                     type="text"
                     value={localData.project}
                     onChange={(e) => handleInputChange(e, 'project')}
-                    className="w-full bg-transparent border-b border-border focus:outline-none"
+                    className="w-full bg-transparent border-b border-border focus:outline-none font-['Monorama']"
                     placeholder="Enter project name"
                     readOnly={!isEditing && !isAddingNote}
                   />
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">REFERENCE NUMBER</label>
-                  <div className="text-sm font-mono">
+                  <label className="text-sm text-muted-foreground font-['Monorama']">REFERENCE NUMBER</label>
+                  <div className="text-sm font-['Monorama']">
                     {localData.referenceNumber}
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm text-muted-foreground">DATE</label>
-                  <div className="text-sm">{new Date().toLocaleDateString()}</div>
+                  <label className="text-sm text-muted-foreground font-['Monorama']">DATE</label>
+                  <div className="text-sm font-['Monorama']">{new Date().toLocaleDateString()}</div>
                 </div>
               </div>
             </div>
@@ -163,7 +165,7 @@ export const NotesView = () => {
               <textarea
                 value={localData.content}
                 onChange={(e) => handleInputChange(e, 'content')}
-                className="w-full h-[500px] p-4 bg-transparent resize-none focus:outline-none font-mono relative z-10"
+                className="w-full h-[500px] p-4 bg-transparent resize-none focus:outline-none font-['Monorama'] relative z-10"
                 placeholder="Start your journey here..."
                 style={{
                   lineHeight: '24px',
@@ -198,11 +200,20 @@ export const NotesView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background p-6 font-['Monorama']">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-foreground">Notes</h1>
+        {/* Add Header with Return Button */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/')}
+              className="p-2 hover:bg-accent/10 rounded-full"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-2xl font-bold text-foreground font-['Monorama']">Notes</h1>
+          </div>
           <button
             onClick={() => setIsAddingNote(true)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
@@ -246,12 +257,12 @@ export const NotesView = () => {
               <div className="p-4 space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold text-lg">{note.title}</h3>
-                    <span className="text-xs text-muted-foreground">
+                    <h3 className="font-semibold text-lg font-['Monorama']">{note.title}</h3>
+                    <span className="text-xs text-muted-foreground font-['Monorama']">
                       Project: {note.project}
                     </span>
                     <br />
-                    <span className="text-xs text-primary font-mono">
+                    <span className="text-xs text-primary font-mono font-['Monorama']">
                       {note.referenceNumber}
                     </span>
                   </div>
@@ -275,7 +286,7 @@ export const NotesView = () => {
                 </div>
                 <div className="h-px bg-border" />
                 <div 
-                  className="text-sm text-muted-foreground whitespace-pre-wrap break-words font-mono cursor-pointer"
+                  className="text-sm text-muted-foreground whitespace-pre-wrap break-words font-mono font-['Monorama'] cursor-pointer"
                   onClick={() => setSelectedNote(note)}
                   style={{ 
                     maxHeight: '150px',
@@ -287,7 +298,7 @@ export const NotesView = () => {
                 >
                   {note.content}
                 </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1 text-xs text-muted-foreground font-['Monorama']">
                   <Clock className="w-3 h-3" />
                   {new Date(note.date).toLocaleDateString()}
                 </div>
