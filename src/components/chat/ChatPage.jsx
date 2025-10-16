@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, Send, Trash2, Wifi, WifiOff, Settings, ArrowLeft, Bot, User, Copy, RotateCcw, Zap, Brain, Sparkles, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useChatContext } from '../../context/ChatContext';
+import StarRating from '../ui/StarRating';
 
 export const ChatPage = () => {
   const navigate = useNavigate();
@@ -16,7 +17,8 @@ export const ChatPage = () => {
     clearMessages,
     checkHealth,
     startVoiceInput,
-    enableVoiceWake
+    enableVoiceWake,
+    sendFeedback
   } = useChatContext();
   
   // All state declarations at the top
@@ -404,7 +406,7 @@ export const ChatPage = () => {
                       )}
                     </div>
                     
-                    {/* Timestamp and Model */}
+                    {/* Timestamp, Model, and Rating */}
                     <div className={`flex items-center gap-2 mt-2 text-xs text-slate-500 dark:text-slate-400 ${
                       message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'
                     }`}>
@@ -413,6 +415,17 @@ export const ChatPage = () => {
                         <>
                           <span>•</span>
                           <span className="font-medium">{message.model}</span>
+                        </>
+                      )}
+                      {message.sender === 'ai' && message.text && (
+                        <>
+                          <span>•</span>
+                          <StarRating
+                            messageId={message.id}
+                            currentRating={message.rating || 0}
+                            onRate={sendFeedback}
+                            size="sm"
+                          />
                         </>
                       )}
                     </div>

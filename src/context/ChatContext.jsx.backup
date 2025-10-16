@@ -1,9 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 const ChatContext = createContext();
 
-const OLLAMA_BASE_URL = import.meta.env.VITE_CHAT_API_URL || 'http://localhost:5000';
+const OLLAMA_BASE_URL = 'http://localhost:5000';
 
 export const ChatProvider = ({ children }) => {
   const [messages, setMessages] = useState(() => {
@@ -44,13 +45,9 @@ export const ChatProvider = ({ children }) => {
 
   const fetchModels = async () => {
     try {
-      console.log('[ChatContext] Fetching models from:', `${OLLAMA_BASE_URL}/api/models`);
       const response = await fetch(`${OLLAMA_BASE_URL}/api/models`);
-      console.log('[ChatContext] Models response status:', response.status);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('[ChatContext] Models data:', data);
         const models = data.models || [];
         setAvailableModels(models);
         setIsConnected(true);
@@ -61,12 +58,9 @@ export const ChatProvider = ({ children }) => {
             setSelectedModel(modelNames[0]);
           }
         }
-      } else {
-        console.error('[ChatContext] Failed to fetch models, status:', response.status);
-        setIsConnected(false);
       }
     } catch (error) {
-      console.error('[ChatContext] Failed to fetch models:', error);
+      console.error('Failed to fetch models:', error);
       setIsConnected(false);
     }
   };
@@ -209,6 +203,7 @@ export const ChatProvider = ({ children }) => {
     setIsChatOpen(!isChatOpen);
   };
 
+
   // Voice input (speech-to-text) function
   const startVoiceInput = (onResult, onError) => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -261,126 +256,103 @@ export const ChatProvider = ({ children }) => {
       wakeRecognition.interimResults = true;
 
       wakeRecognition.onresult = (event) => {
-        const current = event.resultIndex;
-        const transcript = event.results[current][0].transcript.toLowerCase();
-        
-        // Check for hotword variations
-        if (transcript.includes('hey eden') || transcript.includes('hey even') || transcript.includes('hey eaton')) {
-          console.log('Hotword detected:', transcript);
-          
-          // Stop wake recognition
-          wakeRecognition.stop();
-          
-          // Signal start listening for message
-          if (onStartListening) onStartListening();
-          
-          // Wait a moment then start message recognition
-          setTimeout(() => {
+        const hotwordPatterns = [
+          /hey\s*eden/,
+          /hello\s*eden/,
+          /hi\s*eden/,
+        ];
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          const transcript = event.results[i][0].transcript.trim().toLowerCase();
+          if (hotwordPatterns.some((pattern) => pattern.test(transcript))) {
+            wakeRecognition.abort();
             startMessageRecognition();
-          }, 500);
+            break;
+          }
         }
       };
-
       wakeRecognition.onerror = (event) => {
+        console.log('Wake recognition error:', event.error);
+        // Only restart if it's not an intentional abort and wake mode is still active
         if (event.error !== 'aborted' && isWakeActive) {
-          console.log('Wake recognition error:', event.error);
+          if (onError) onError(event.error);
           setTimeout(() => {
             if (isWakeActive) startWakeRecognition();
           }, 1000);
         }
       };
-
       wakeRecognition.onend = () => {
+        console.log('Wake recognition ended, isWakeActive:', isWakeActive);
+        // Only restart if wake mode is still active and not intentionally stopped
         if (isWakeActive) {
           setTimeout(() => {
             if (isWakeActive) startWakeRecognition();
-          }, 100);
+          }, 1000);
         }
       };
-
-      try {
-        wakeRecognition.start();
-      } catch (e) {
-        console.error('Error starting wake recognition:', e);
-      }
+      wakeRecognition.start();
     };
 
-    // Helper to start listening for the actual message
+    // Helper to listen for the user's message
     const startMessageRecognition = () => {
+      if (onStartListening) onStartListening(); // Notify that we're now listening for the message
+      
+      // Clean up any existing recognition
       if (messageRecognition) {
         messageRecognition.abort();
         messageRecognition = null;
       }
-
+      
       messageRecognition = new SpeechRecognition();
       messageRecognition.lang = 'en-US';
-      messageRecognition.continuous = true;
-      messageRecognition.interimResults = true;
+      messageRecognition.interimResults = false;
+      messageRecognition.maxAlternatives = 1;
 
       let finalTranscript = '';
-      let interimTranscript = '';
 
       messageRecognition.onresult = (event) => {
-        let interim = '';
-        let final = '';
-
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            final += event.results[i][0].transcript;
-          } else {
-            interim += event.results[i][0].transcript;
-          }
-        }
-
-        finalTranscript = final;
-        interimTranscript = interim;
-
-        // Reset silence timeout on any speech
-        if (silenceTimeout) {
-          clearTimeout(silenceTimeout);
-        }
-
-        // Set timeout for silence detection
+        finalTranscript = event.results[0][0].transcript;
+        // Start silence timer
+        if (silenceTimeout) clearTimeout(silenceTimeout);
         silenceTimeout = setTimeout(() => {
-          if (finalTranscript.trim()) {
-            messageRecognition.stop();
-            if (onMessage) onMessage(finalTranscript.trim());
+          if (onMessage && finalTranscript.trim()) onMessage(finalTranscript.trim());
+          // After sending, go back to wake mode only if still active
+          if (isWakeActive) {
+            startWakeRecognition();
           }
-          startWakeRecognition(); // Return to wake listening
-        }, 2000); // 2 seconds of silence
+        }, 3000);
       };
-
-      messageRecognition.onerror = (event) => {
-        if (event.error !== 'aborted') {
-          console.log('Message recognition error:', event.error);
-          if (onError) onError(event.error);
-        }
-        startWakeRecognition(); // Return to wake listening
-      };
-
       messageRecognition.onend = () => {
-        if (finalTranscript.trim()) {
-          if (onMessage) onMessage(finalTranscript.trim());
-        }
-        if (isWakeActive) {
-          startWakeRecognition(); // Return to wake listening
+        // If user stopped speaking, wait for silence timeout only if still active
+        if (!silenceTimeout && isWakeActive) {
+          silenceTimeout = setTimeout(() => {
+            if (onMessage && finalTranscript.trim()) onMessage(finalTranscript.trim());
+            if (isWakeActive) {
+              startWakeRecognition();
+            }
+          }, 3000);
         }
       };
-
-      try {
-        messageRecognition.start();
-      } catch (e) {
-        console.error('Error starting message recognition:', e);
-        startWakeRecognition(); // Return to wake listening
-      }
+      messageRecognition.onerror = (event) => {
+        console.log('Message recognition error:', event.error);
+        // Only report non-abort errors
+        if (event.error !== 'aborted' && onError) {
+          onError(event.error);
+        }
+        // Only restart wake recognition if we're still supposed to be listening
+        if (isWakeActive) {
+          startWakeRecognition();
+        }
+      };
+      messageRecognition.start();
     };
 
-    // Start the wake recognition
+    // Start the wake word recognition
     startWakeRecognition();
-
-    // Return cleanup function
+    
+    // Return a function to stop all recognition
     return () => {
-      isWakeActive = false;
+      console.log('Cleaning up voice recognition...');
+      isWakeActive = false; // Disable wake mode
       
       if (wakeRecognition) {
         wakeRecognition.abort();
