@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../ui/card';
-import { Clock, Plus, X, Search, Edit, Trash2, ArrowLeft, Smartphone, Filter, BookOpen, FileText, Calendar, Star, Eye, LayoutGrid, List, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, Plus, X, Search, Edit, Trash2, ArrowLeft, Smartphone, Filter, BookOpen, FileText, Calendar, Star, Eye, LayoutGrid, List, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useTaskContext } from '../../context/TaskContext';
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { RESEARCH_CATEGORIES } from '../../utils/constants';
 import { TaskStatus } from '../../types/task';
+import AIAssistant from './AIAssistant';
 
 export const ResearchNotebookView = () => {
   const { notes, addNote, updateNote, deleteNote } = useTaskContext();  const [selectedNote, setSelectedNote] = useState({
@@ -29,6 +30,8 @@ export const ResearchNotebookView = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [currentPage, setCurrentPage] = useState(0); // Book page navigation
+  const [showAIAssistant, setShowAIAssistant] = useState(false); // AI Assistant toggle
+  const [isAIMinimized, setIsAIMinimized] = useState(true); // AI Assistant minimized state
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [debugMessage, setDebugMessage] = useState('');
@@ -477,6 +480,16 @@ This is your main research documentation space."
             >
               <Smartphone className="w-4 h-4" />
               Mobile Entry
+            </button>
+            <button
+              onClick={() => {
+                setShowAIAssistant(true);
+                setIsAIMinimized(false);
+              }}
+              className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 flex items-center gap-2 transition-all duration-200 shadow-lg shadow-purple-500/20"
+            >
+              <Sparkles className="w-4 h-4" />
+              AI Assistant
             </button>
             <button
               onClick={() => setIsAddingNote(true)}
@@ -1343,6 +1356,32 @@ This is your main research documentation space."
           <div className="fixed bottom-4 right-4 bg-card p-2 rounded shadow">
             {debugMessage}
           </div>
+        )}
+
+        {/* AI Assistant Panel */}
+        {showAIAssistant && (
+          <>
+            {isAIMinimized ? (
+              <AIAssistant
+                notes={researchNotes}
+                isMinimized={true}
+                onToggleSize={() => setIsAIMinimized(false)}
+              />
+            ) : (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                <div className="bg-background rounded-xl w-full max-w-4xl h-[80vh] shadow-2xl">
+                  <AIAssistant
+                    notes={researchNotes}
+                    isMinimized={false}
+                    onToggleSize={() => {
+                      setIsAIMinimized(true);
+                      setShowAIAssistant(false);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
