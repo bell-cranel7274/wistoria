@@ -10,6 +10,7 @@ import { ChartView } from './components/dashboard/views/ChartView';
 import { ResearchNotebookView } from './components/research/ResearchNotebookView';
 import { MobileEntryView } from './components/research/MobileEntryView';
 import { BookView } from './components/research/BookView';
+import { ResearchFormPage } from './components/research/ResearchFormPage';
 import { ProgressHub } from './components/progress/ProgressHub';
 import { AlarmView } from './components/alarm/AlarmView';
 import { ChatPage } from './components/chat/ChatPage';
@@ -92,6 +93,8 @@ function App() {
                     <ResearchNotebookView />
                   </Suspense>
                 } />
+                <Route path="/research/new" element={<ResearchFormPage />} />
+                <Route path="/research/edit/:noteId" element={<ResearchFormPage />} />
                 <Route path="/mobile-entry/:sessionId" element={<MobileEntryView />} />
                 <Route path="/research/book/:bookId" element={<BookView />} />
                 

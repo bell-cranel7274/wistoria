@@ -492,7 +492,7 @@ This is your main research documentation space."
               AI Assistant
             </button>
             <button
-              onClick={() => setIsAddingNote(true)}
+              onClick={() => navigate('/research/new')}
               className="px-6 py-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg hover:from-primary/90 hover:to-primary/70 flex items-center gap-2 transition-all duration-200 shadow-lg shadow-primary/20"
             >
               <Plus className="w-4 h-4" />
@@ -667,7 +667,7 @@ This is your main research documentation space."
             </div>
             {!searchQuery && (
               <button
-                onClick={() => setIsAddingNote(true)}
+                onClick={() => navigate('/research/new')}
                 className="px-8 py-4 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg hover:from-primary/90 hover:to-primary/70 transition-all duration-200 shadow-lg shadow-primary/20 flex items-center gap-3 mx-auto"
               >
                 <Plus className="w-5 h-5" />
@@ -727,8 +727,7 @@ This is your main research documentation space."
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedNote(note);
-                          setIsEditingNote(true);
+                          navigate(`/research/edit/${note.id}`);
                         }}
                         className="p-1.5 bg-background/90 rounded-md hover:bg-background transition-colors duration-200 shadow-lg"
                         title="Edit Research"
@@ -880,8 +879,7 @@ This is your main research documentation space."
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setSelectedNote(note);
-                                setIsEditingNote(true);
+                                navigate(`/research/edit/${note.id}`);
                               }}
                               className="p-2 hover:bg-accent/10 rounded-md transition-colors duration-200"
                               title="Edit Research"
@@ -920,9 +918,10 @@ This is your main research documentation space."
           </div>
         )}
 
-        {/* Add/Edit Note Modal */}
-        {/* Similar to NotesView modal but with research-specific fields */}
-        {/* ... Modal implementation ... */}        {isAddingNote && (
+        {/* Note: Add/Edit modals removed - now using full-page form at /research/new and /research/edit/:noteId */}
+        
+        {/* Removed modal - keeping for backward compatibility but won't render */}
+        {false && isAddingNote && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             {/* Book-Style Modal */}
             <div className="bg-card rounded-xl w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl border border-border/20 relative">
@@ -1126,8 +1125,10 @@ This is your main research documentation space."
               </div>
             </div>
           </div>
-        )}        {/* Edit Note Modal */}
-        {isEditingNote && selectedNote && (
+        )}
+        
+        {/* Removed edit modal - keeping for backward compatibility but won't render */}
+        {false && isEditingNote && selectedNote && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             {/* Book-Style Edit Modal */}
             <div className="bg-card rounded-xl w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl border border-border/20 relative">
